@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Reverse IP Domain</title>
+</head>
+<body>
+
+	<script src="https://cdn.tailwindcss.com"></script>
+	<div class="bg-white p-6 rounded-lg shadow-md">
+		<h1 class="text-2xl font-medium mb-4 text-center">Reverse Ip</h1>
+		<div class="mb-4">
+			<label class="block font-medium mb-2" for="name">
+				Domain:
+			</label>
+			<input
+			class="w-full border border-gray-400 p-2 rounded-lg"
+			type="text"
+			id="domain"
+			name="domain"
+			placeholder="example: google.com"
+			/>
+		</div>
+
+		<button onclick="reverseiplookup()" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600">
+			Display Result
+		</button>
+
+		<button onclick="saveDomain()" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600">
+			Save Result
+		</button>
+
+		
+	</div>
+
+	<table id="tableresult" class="table-auto w-full text-left" style="display: none;">
+		<thead class="bg-gray-800 text-white">
+			<tr>
+				<th class="px-4 py-2">Domain</th>
+
+			</tr>
+		</thead>
+		<tbody id="domainlist">
+			
+		</tbody>
+	</table>
+
+	<script type="text/javascript">
+
+		function removeSubdomain(url) {
+			var parts = url.split('.');
+			if (parts.length <= 2) {
+				return url;
+			} else {
+				parts.shift();
+				return parts.join('.');
+			}
+		}
+
+
+		function reverseiplookup() {
+			var domain = document.getElementById("domain").value;
+
+			document.getElementById("tableresult").style.display = "grid";
+
+			var table = "";
+			fetch('https://api.hackertarget.com/reverseiplookup/?q='+removeSubdomain(domain))
+			.then(response => response.text())
+			.then(text => {
+				const lines = text.split('\n');
+				for (const line of lines) {
+					table += `<tr class="bg-gray-100" style="display:grid;">
+					<td class="border px-4 py-2">`+line+`</td>
+					</tr>`;
+				}
+				document.getElementById("domainlist").innerHTML = table;
+			});
+
+		}
+
+		function saveDomain() {
+			var domain = document.getElementById("domain").value;
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", 'https://api.hackertarget.com/reverseiplookup/?q='+removeSubdomain(domain), true);
+			xhr.responseType = "blob";
+			xhr.onload = function(e) {
+				if (this.status === 200) {
+					var blob = new Blob([this.response], { type: "text/plain" });
+					var a = document.createElement("a");
+					a.style = "display: none";
+					document.body.appendChild(a);
+					var url = window.URL.createObjectURL(blob);
+					a.href = url;
+					a.download = "domain.txt";
+					a.click();
+					window.URL.revokeObjectURL(url);
+				}
+			};
+			xhr.send();
+
+		}
+
+
+	</script>
+
+</body>
+</html>
